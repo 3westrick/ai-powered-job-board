@@ -1,6 +1,7 @@
 import { UserNotificationSettingsTable } from "@/drizzle/schema"
 import { UserNotificationSettingsInsert } from "./lib/types"
 import db from "@/drizzle/db"
+import { revalidateUserNotificationSettingsCache } from "./cache"
 
 export async function createOrganizationUserSettings(
     settings: UserNotificationSettingsInsert
@@ -9,4 +10,5 @@ export async function createOrganizationUserSettings(
         .insert(UserNotificationSettingsTable)
         .values(settings)
         .onConflictDoNothing()
+    revalidateUserNotificationSettingsCache(settings.userId)
 }
