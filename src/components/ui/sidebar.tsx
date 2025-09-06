@@ -273,7 +273,6 @@ function SidebarTrigger({
     ...props
 }: React.ComponentProps<typeof Button>) {
     const { toggleSidebar, open } = useSidebar()
-    console.log("🚀 ~ SidebarTrigger ~ open:", open)
 
     return (
         <Button
