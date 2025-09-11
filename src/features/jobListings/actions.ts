@@ -11,6 +11,8 @@ import db from "@/drizzle/db"
 import { and, eq } from "drizzle-orm"
 import { JobListingTable } from "@/drizzle/schema"
 import hasOrgPermission from "@/services/clerk/lib/hasOrgPermission"
+import { getNextJobListingStatus } from "./lib/utils"
+import { hasReachedMaxPublishedJobListings } from "./permissions"
 
 export async function createJobListing(
     unsafeData: z.infer<typeof jobListingSchema>
@@ -78,4 +80,39 @@ export async function getJobListing(jobListingId: string, orgId: string) {
             eq(JobListingTable.organizationId, orgId)
         ),
     })
+}
+
+export async function toggleJobListingStatus(id: string) {
+    const error = {
+        error: true,
+        message: "You don't have permission to edit a job listing status",
+    }
+    const { orgId } = await getCurrentOrg()
+    if (orgId == null) return error
+
+    const jobListing = await getJobListing(id, orgId)
+    if (jobListing == null) return error
+
+    const nextStatus = getNextJobListingStatus(jobListing.status)
+
+    if (!(await hasOrgPermission("job_listings:change_status"))) return error
+
+    if (
+        nextStatus == "published" &&
+        (await hasReachedMaxPublishedJobListings())
+    )
+        return error
+
+    const updatedJobListing = await updateJobListing(jobListing.id, {
+        status: nextStatus,
+        isFeatured: nextStatus == "published" ? undefined : false,
+        postedAt:
+            nextStatus == "published" && jobListing.postedAt == null
+                ? new Date()
+                : undefined,
+    })
+    return {
+        error: false,
+        message: "Job listing status updated",
+    }
 }

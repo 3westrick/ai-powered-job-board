@@ -6,7 +6,7 @@ import { and, count, eq } from "drizzle-orm"
 import { JobListingTable } from "@/drizzle/schema"
 import hasOrgFeature from "@/services/clerk/lib/hasOrgFeature"
 
-export async function hasReachedMaxFeaturedJobListings() {
+export async function hasReachedMaxPublishedJobListings() {
     const { orgId } = await getCurrentOrg()
     if (orgId == null) return true
     const publishedJobListingsCount = await getPublishedJobListingsCount(orgId)

@@ -1,6 +1,7 @@
 import AsyncIf from "@/components/async-if"
 import { MarkdownPartial } from "@/components/markdown/markdown-partial"
 import { MarkdownRenderer } from "@/components/markdown/markdown-renderer"
+import { ActionButton } from "@/components/ui/action-button"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -9,12 +10,15 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover"
 import { JobListingStatus, JobListingTable } from "@/drizzle/schema"
-import { getJobListing } from "@/features/jobListings/actions"
+import {
+    getJobListing,
+    toggleJobListingStatus,
+} from "@/features/jobListings/actions"
 import { getJobListingsIdTag } from "@/features/jobListings/cache"
 import { JobListingBadges } from "@/features/jobListings/components/job-listing-badge"
 import { formatJobListingStatus } from "@/features/jobListings/lib/formatters"
 import { getNextJobListingStatus } from "@/features/jobListings/lib/utils"
-import { hasReachedMaxFeaturedJobListings } from "@/features/jobListings/permissions"
+import { hasReachedMaxPublishedJobListings } from "@/features/jobListings/permissions"
 import getCurrentOrg from "@/services/clerk/lib/getCurrentOrg"
 import hasOrgFeature from "@/services/clerk/lib/hasOrgFeature"
 import hasOrgPermission from "@/services/clerk/lib/hasOrgPermission"
@@ -73,7 +77,10 @@ async function EmployerJobListingsJobListingIdPageSuspense({ params }: Props) {
                             </Link>
                         </Button>
                     </AsyncIf>
-                    <StatusUpdateButton status={jobListing.status} />
+                    <StatusUpdateButton
+                        status={jobListing.status}
+                        id={jobListing.id}
+                    />
                 </div>
             </div>
             <MarkdownPartial
@@ -92,8 +99,23 @@ async function EmployerJobListingsJobListingIdPageSuspense({ params }: Props) {
     )
 }
 
-function StatusUpdateButton({ status }: { status: JobListingStatus }) {
-    const btn = <Button variant="outline">Toggle</Button>
+function StatusUpdateButton({
+    status,
+    id,
+}: {
+    status: JobListingStatus
+    id: string
+}) {
+    const btn = (
+        <ActionButton
+            action={toggleJobListingStatus.bind(null, id)}
+            variant="outline"
+            requireAreYouSure={getNextJobListingStatus(status) == "published"}
+            areYouSureDescription="This will immediately show this job listing to all users ."
+        >
+            {statusToggleButtonText(status)}
+        </ActionButton>
+    )
     return (
         <AsyncIf
             condition={() => hasOrgPermission("job_listings:change_status")}
@@ -101,17 +123,15 @@ function StatusUpdateButton({ status }: { status: JobListingStatus }) {
             {getNextJobListingStatus(status) == "published" ? (
                 <AsyncIf
                     condition={async () => {
-                        const isMaxed = await hasReachedMaxFeaturedJobListings()
+                        const isMaxed =
+                            await hasReachedMaxPublishedJobListings()
                         return !isMaxed
                     }}
                     otherwise={
                         <UpgradePopover
                             buttonText={statusToggleButtonText(status)}
                             popoverText={
-                                <p>
-                                    You must upgrade your plan to publish more
-                                    job listings.
-                                </p>
+                                "You must upgrade your plan to publish morejob listings."
                             }
                         />
                     }
