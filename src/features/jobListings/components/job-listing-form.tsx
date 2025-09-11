@@ -41,6 +41,7 @@ import { StateSelectItems } from "./state-select-items"
 import { LoadingSwap } from "@/components/ui/loading-swap"
 import { MarkdownEditor } from "@/components/markdown/markdown-editor"
 const NONE_SELECT_VALUE = "none"
+
 export function JobListingForm({
     jobListing,
 }: {

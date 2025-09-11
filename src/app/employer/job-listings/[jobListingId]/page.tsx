@@ -1,20 +1,29 @@
+import AsyncIf from "@/components/async-if"
 import { MarkdownPartial } from "@/components/markdown/markdown-partial"
 import { MarkdownRenderer } from "@/components/markdown/markdown-renderer"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import db from "@/drizzle/db"
-import { JobListingTable } from "@/drizzle/schema"
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
+import { JobListingStatus, JobListingTable } from "@/drizzle/schema"
 import { getJobListing } from "@/features/jobListings/actions"
 import { getJobListingsIdTag } from "@/features/jobListings/cache"
 import { JobListingBadges } from "@/features/jobListings/components/job-listing-badge"
 import { formatJobListingStatus } from "@/features/jobListings/lib/formatters"
+import { getNextJobListingStatus } from "@/features/jobListings/lib/utils"
+import { hasReachedMaxFeaturedJobListings } from "@/features/jobListings/permissions"
 import getCurrentOrg from "@/services/clerk/lib/getCurrentOrg"
+import hasOrgFeature from "@/services/clerk/lib/hasOrgFeature"
+import hasOrgPermission from "@/services/clerk/lib/hasOrgPermission"
 import { and, eq } from "drizzle-orm"
-import { EditIcon } from "lucide-react"
+import { EditIcon, EyeIcon, EyeOffIcon } from "lucide-react"
 import { cacheTag } from "next/dist/server/use-cache/cache-tag"
 import Link from "next/link"
 import { forbidden, notFound } from "next/navigation"
-import { Suspense } from "react"
+import { ReactNode, Suspense } from "react"
 
 type Props = {
     params: Promise<{ jobListingId: string }>
@@ -50,14 +59,21 @@ async function EmployerJobListingsJobListingIdPageSuspense({ params }: Props) {
                     </div>
                 </div>
                 <div className="flex items-center gap-2 empty:-mt-4">
-                    <Button asChild variant="outline">
-                        <Link
-                            href={`/employer/job-listings/${jobListing.id}/edit`}
-                        >
-                            <EditIcon className="size-4" />
-                            Edit
-                        </Link>
-                    </Button>
+                    <AsyncIf
+                        condition={() =>
+                            hasOrgPermission("job_listings:update")
+                        }
+                    >
+                        <Button asChild variant="outline">
+                            <Link
+                                href={`/employer/job-listings/${jobListing.id}/edit`}
+                            >
+                                <EditIcon className="size-4" />
+                                Edit
+                            </Link>
+                        </Button>
+                    </AsyncIf>
+                    <StatusUpdateButton status={jobListing.status} />
                 </div>
             </div>
             <MarkdownPartial
@@ -74,4 +90,84 @@ async function EmployerJobListingsJobListingIdPageSuspense({ params }: Props) {
             />
         </div>
     )
+}
+
+function StatusUpdateButton({ status }: { status: JobListingStatus }) {
+    const btn = <Button variant="outline">Toggle</Button>
+    return (
+        <AsyncIf
+            condition={() => hasOrgPermission("job_listings:change_status")}
+        >
+            {getNextJobListingStatus(status) == "published" ? (
+                <AsyncIf
+                    condition={async () => {
+                        const isMaxed = await hasReachedMaxFeaturedJobListings()
+                        return !isMaxed
+                    }}
+                    otherwise={
+                        <UpgradePopover
+                            buttonText={statusToggleButtonText(status)}
+                            popoverText={
+                                <p>
+                                    You must upgrade your plan to publish more
+                                    job listings.
+                                </p>
+                            }
+                        />
+                    }
+                >
+                    {btn}
+                </AsyncIf>
+            ) : (
+                btn
+            )}
+        </AsyncIf>
+    )
+}
+
+function UpgradePopover({
+    buttonText,
+    popoverText,
+}: {
+    buttonText: ReactNode
+    popoverText: ReactNode
+}) {
+    return (
+        <Popover>
+            <PopoverTrigger asChild>
+                <Button variant={"outline"}>{buttonText}</Button>
+            </PopoverTrigger>
+            <PopoverContent className="flex flex-col gap-2 ">
+                {popoverText}
+                <Button asChild>
+                    <Link href={"/employer/pricing"}>Upgrade Plan</Link>
+                </Button>
+            </PopoverContent>
+        </Popover>
+    )
+}
+
+function statusToggleButtonText(status: JobListingStatus) {
+    switch (status) {
+        case "draft":
+        case "delisted":
+            return (
+                <>
+                    <EyeIcon className="size-4" />
+                    Publish
+                </>
+            )
+
+        case "published":
+            return (
+                <>
+                    <EyeOffIcon className="size-4" />
+                    Delist
+                </>
+            )
+        default:
+            throw new Error(
+                `Unknown job listing status: ${status satisfies never}`
+            )
+    }
 }

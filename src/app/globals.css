@@ -230,7 +230,7 @@
     @apply !z-50;
 }
 
-.custom-pricing-table.cl-pricingTableCard__basic {
+.custom-pricing-table.cl-pricingTableCard__growth {
     @apply border-primary/50 my-0 py-9 relative overflow-visible;
 
     &::before {
