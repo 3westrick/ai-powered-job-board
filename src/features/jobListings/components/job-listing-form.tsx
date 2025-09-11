@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/form"
 import z from "zod"
 import { toast } from "sonner"
-import { createJobListing, updateJobListing } from "../actions"
+import { createJobListing, editJobListing } from "../actions"
 import { Button } from "@/components/ui/button"
 import {
     Select,
@@ -75,7 +75,7 @@ export function JobListingForm({
 
     async function onSubmit(data: z.infer<typeof jobListingSchema>) {
         const action = jobListing
-            ? updateJobListing.bind(null, jobListing.id)
+            ? editJobListing.bind(null, jobListing.id)
             : createJobListing
         const res = await action(data)
 

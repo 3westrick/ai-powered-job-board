@@ -10,12 +10,13 @@ import { getJobListingsIdTag } from "./cache"
 import db from "@/drizzle/db"
 import { and, eq } from "drizzle-orm"
 import { JobListingTable } from "@/drizzle/schema"
+import hasOrgPermission from "@/services/clerk/lib/hasOrgPermission"
 
 export async function createJobListing(
     unsafeData: z.infer<typeof jobListingSchema>
 ): Promise<{ error: false } | { error: true; message: string }> {
     const { orgId } = await getCurrentOrg()
-    if (orgId == null) {
+    if (orgId == null || !(await hasOrgPermission("job_listings:create"))) {
         return {
             error: true,
             message: "You don't have permission to create a job listing",
@@ -43,10 +44,10 @@ export async function editJobListing(
     unsafeData: z.infer<typeof jobListingSchema>
 ): Promise<{ error: false } | { error: true; message: string }> {
     const { orgId } = await getCurrentOrg()
-    if (orgId == null) {
+    if (orgId == null || !(await hasOrgPermission("job_listings:update"))) {
         return {
             error: true,
-            message: "You don't have permission to create a job listing",
+            message: "You don't have permission to edit a job listing",
         }
     }
     const { success, data } = jobListingSchema.safeParse(unsafeData)
