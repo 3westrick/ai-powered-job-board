@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/popover"
 import { JobListingStatus } from "@/drizzle/schema"
 import {
+    destroyJobListing,
     getJobListing,
     toggleJobListingFeatured,
     toggleJobListingStatus,
@@ -31,6 +32,7 @@ import {
     EyeOffIcon,
     StarIcon,
     StarOffIcon,
+    Trash2Icon,
 } from "lucide-react"
 import Link from "next/link"
 import { forbidden, notFound } from "next/navigation"
@@ -94,6 +96,20 @@ async function EmployerJobListingsJobListingIdPageSuspense({ params }: Props) {
                             id={jobListing.id}
                         />
                     )}
+                    <AsyncIf
+                        condition={() =>
+                            hasOrgPermission("job_listings:delete")
+                        }
+                    >
+                        <ActionButton
+                            variant="destructive"
+                            action={destroyJobListing.bind(null, jobListing.id)}
+                            requireAreYouSure
+                        >
+                            <Trash2Icon className="size-4" />
+                            Delete
+                        </ActionButton>
+                    </AsyncIf>
                 </div>
             </div>
             <MarkdownPartial

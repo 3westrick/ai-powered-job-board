@@ -4,7 +4,7 @@ import z from "zod"
 import { jobListingSchema } from "./schema"
 import getCurrentOrg from "@/services/clerk/lib/getCurrentOrg"
 import { redirect } from "next/navigation"
-import { insertJobListing, updateJobListing } from "./db"
+import { deleteJobListing, insertJobListing, updateJobListing } from "./db"
 import { cacheTag } from "next/dist/server/use-cache/cache-tag"
 import { getJobListingsIdTag } from "./cache"
 import db from "@/drizzle/db"
@@ -139,10 +139,27 @@ export async function toggleJobListingFeatured(id: string) {
     if (newFeaturedStatus && (await hasReachedMaxFeaturedJobListings()))
         return error
 
-    const updatedJobListing = await updateJobListing(jobListing.id, {
+    await updateJobListing(jobListing.id, {
         isFeatured: newFeaturedStatus,
     })
     return {
         error: false,
     }
+}
+
+export async function destroyJobListing(id: string) {
+    const error = {
+        error: true,
+        message: "You don't have permission to delete this job listing ",
+    }
+    const { orgId } = await getCurrentOrg()
+    if (orgId == null) return error
+
+    const jobListing = await getJobListing(id, orgId)
+    if (jobListing == null) return error
+
+    if (!(await hasOrgPermission("job_listings:delete"))) return error
+
+    await deleteJobListing(id)
+    redirect("/employer")
 }
