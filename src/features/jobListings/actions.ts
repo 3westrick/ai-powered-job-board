@@ -6,16 +6,17 @@ import getCurrentOrg from "@/services/clerk/lib/getCurrentOrg"
 import { redirect } from "next/navigation"
 import { deleteJobListing, insertJobListing, updateJobListing } from "./db"
 import { cacheTag } from "next/dist/server/use-cache/cache-tag"
-import { getJobListingsIdTag } from "./cache"
+import { getJobListingsIdTag, getJobListingsOrganizationTag } from "./cache"
 import db from "@/drizzle/db"
-import { and, eq } from "drizzle-orm"
-import { JobListingTable } from "@/drizzle/schema"
+import { and, count, desc, eq } from "drizzle-orm"
+import { JobListingApplicationTable, JobListingTable } from "@/drizzle/schema"
 import hasOrgPermission from "@/services/clerk/lib/hasOrgPermission"
 import { getNextJobListingStatus } from "./lib/utils"
 import {
     hasReachedMaxFeaturedJobListings,
     hasReachedMaxPublishedJobListings,
 } from "./permissions"
+import { getJobListingApplicationJobListingTag } from "../jobListingApplications/cache"
 
 export async function createJobListing(
     unsafeData: z.infer<typeof jobListingSchema>
@@ -162,4 +163,30 @@ export async function destroyJobListing(id: string) {
 
     await deleteJobListing(id)
     redirect("/employer")
+}
+
+export async function getJobListings(orgId: string) {
+    "use cache"
+    cacheTag(getJobListingsOrganizationTag(orgId))
+    const jobListings = await db
+        .select({
+            id: JobListingTable.id,
+            title: JobListingTable.title,
+            status: JobListingTable.status,
+            applicationCount: count(JobListingApplicationTable.userId),
+        })
+        .from(JobListingTable)
+        .where(eq(JobListingTable.organizationId, orgId))
+        .leftJoin(
+            JobListingApplicationTable,
+            eq(JobListingTable.id, JobListingApplicationTable.jobListingId)
+        )
+        .groupBy(JobListingApplicationTable.jobListingId, JobListingTable.id)
+        .orderBy(desc(JobListingTable.createdAt))
+
+    jobListings.forEach((jobListing) => {
+        cacheTag(getJobListingApplicationJobListingTag(jobListing.id))
+    })
+
+    return jobListings
 }
