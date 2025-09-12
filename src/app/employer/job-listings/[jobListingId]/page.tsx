@@ -9,22 +9,29 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
-import { JobListingStatus, JobListingTable } from "@/drizzle/schema"
+import { JobListingStatus } from "@/drizzle/schema"
 import {
     getJobListing,
+    toggleJobListingFeatured,
     toggleJobListingStatus,
 } from "@/features/jobListings/actions"
 import { getJobListingsIdTag } from "@/features/jobListings/cache"
 import { JobListingBadges } from "@/features/jobListings/components/job-listing-badge"
 import { formatJobListingStatus } from "@/features/jobListings/lib/formatters"
 import { getNextJobListingStatus } from "@/features/jobListings/lib/utils"
-import { hasReachedMaxPublishedJobListings } from "@/features/jobListings/permissions"
+import {
+    hasReachedMaxFeaturedJobListings,
+    hasReachedMaxPublishedJobListings,
+} from "@/features/jobListings/permissions"
 import getCurrentOrg from "@/services/clerk/lib/getCurrentOrg"
-import hasOrgFeature from "@/services/clerk/lib/hasOrgFeature"
 import hasOrgPermission from "@/services/clerk/lib/hasOrgPermission"
-import { and, eq } from "drizzle-orm"
-import { EditIcon, EyeIcon, EyeOffIcon } from "lucide-react"
-import { cacheTag } from "next/dist/server/use-cache/cache-tag"
+import {
+    EditIcon,
+    EyeIcon,
+    EyeOffIcon,
+    StarIcon,
+    StarOffIcon,
+} from "lucide-react"
 import Link from "next/link"
 import { forbidden, notFound } from "next/navigation"
 import { ReactNode, Suspense } from "react"
@@ -81,6 +88,12 @@ async function EmployerJobListingsJobListingIdPageSuspense({ params }: Props) {
                         status={jobListing.status}
                         id={jobListing.id}
                     />
+                    {jobListing.status == "published" && (
+                        <FeaturedToggleButton
+                            isFeatured={jobListing.isFeatured}
+                            id={jobListing.id}
+                        />
+                    )}
                 </div>
             </div>
             <MarkdownPartial
@@ -145,6 +158,48 @@ function StatusUpdateButton({
     )
 }
 
+function FeaturedToggleButton({
+    isFeatured,
+    id,
+}: {
+    isFeatured: boolean
+    id: string
+}) {
+    const button = (
+        <ActionButton
+            action={toggleJobListingFeatured.bind(null, id)}
+            variant="outline"
+        >
+            {featuredToggleButtonText(isFeatured)}
+        </ActionButton>
+    )
+
+    return (
+        <AsyncIf
+            condition={() => hasOrgPermission("job_listings:change_status")}
+        >
+            {isFeatured ? (
+                button
+            ) : (
+                <AsyncIf
+                    condition={async () => {
+                        const isMaxed = await hasReachedMaxFeaturedJobListings()
+                        return !isMaxed
+                    }}
+                    otherwise={
+                        <UpgradePopover
+                            buttonText={featuredToggleButtonText(isFeatured)}
+                            popoverText="You must upgrade your plan to feature more job listings."
+                        />
+                    }
+                >
+                    {button}
+                </AsyncIf>
+            )}
+        </AsyncIf>
+    )
+}
+
 function UpgradePopover({
     buttonText,
     popoverText,
@@ -190,4 +245,21 @@ function statusToggleButtonText(status: JobListingStatus) {
                 `Unknown job listing status: ${status satisfies never}`
             )
     }
+}
+function featuredToggleButtonText(isFeatured: boolean) {
+    if (isFeatured) {
+        return (
+            <>
+                <StarOffIcon className="size-4" />
+                UnFeature
+            </>
+        )
+    }
+
+    return (
+        <>
+            <StarIcon className="size-4" />
+            Feature
+        </>
+    )
 }

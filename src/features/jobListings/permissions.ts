@@ -24,6 +24,19 @@ export async function hasReachedMaxPublishedJobListings() {
     return !canPost.some(Boolean)
 }
 
+export async function hasReachedMaxFeaturedJobListings() {
+    const { orgId } = await getCurrentOrg()
+    if (orgId == null) return true
+    const publishedJobListingsCount = await getFeaturedJobListingsCount(orgId)
+    const canPost = await Promise.all([
+        hasOrgFeature("1_featured_job_listing").then(
+            (has) => has && publishedJobListingsCount < 1
+        ),
+        hasOrgFeature("unlimited_featured_jobs_listings"),
+    ])
+    return !canPost.some(Boolean)
+}
+
 async function getPublishedJobListingsCount(orgId: string) {
     "use cache"
     cacheTag(getJobListingsOrganizationTag(orgId))
@@ -34,6 +47,22 @@ async function getPublishedJobListingsCount(orgId: string) {
             and(
                 eq(JobListingTable.organizationId, orgId),
                 eq(JobListingTable.status, "published")
+            )
+        )
+
+    return res?.count ?? 0
+}
+
+async function getFeaturedJobListingsCount(orgId: string) {
+    "use cache"
+    cacheTag(getJobListingsOrganizationTag(orgId))
+    const [res] = await db
+        .select({ count: count() })
+        .from(JobListingTable)
+        .where(
+            and(
+                eq(JobListingTable.organizationId, orgId),
+                eq(JobListingTable.isFeatured, true)
             )
         )
 

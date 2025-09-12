@@ -50,7 +50,7 @@ export function JobListingBadges({
 
     return (
         <>
-            {true && (
+            {isFeatured && (
                 <Badge
                     {...badgeProps}
                     className={cn(
