@@ -46,6 +46,8 @@ import {
 import { SignUpButton } from "@/services/clerk/components/auth-button"
 import { connection } from "next/server"
 import { differenceInDays } from "date-fns"
+import { getUserResumeIdTag } from "@/features/userResumes/cache"
+import NewJobListingApplicationForm from "@/features/jobListingApplications/components/NewJobListingApplicationForm"
 
 export default function JobListingPage({
     params,
@@ -258,7 +260,7 @@ async function ApplyButton({ jobListingId }: { jobListingId: string }) {
                     </DialogDescription>
                 </DialogHeader>
                 <div className="flex-1 overflow-y-auto">
-                    {/* <NewJobListingApplicationForm jobListingId={jobListingId} /> */}
+                    <NewJobListingApplicationForm jobListingId={jobListingId} />
                 </div>
             </DialogContent>
         </Dialog>
@@ -266,8 +268,8 @@ async function ApplyButton({ jobListingId }: { jobListingId: string }) {
 }
 
 async function getUserResume(userId: string) {
-    // "use cache"
-    // cacheTag(getUserResumeIdTag(userId))
+    "use cache"
+    cacheTag(getUserResumeIdTag(userId))
 
     return db.query.UserResumeTable.findFirst({
         where: eq(UserResumeTable.userId, userId),
