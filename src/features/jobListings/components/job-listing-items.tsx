@@ -26,6 +26,7 @@ import {
     jobListingTypes,
     locationRequirements,
 } from "@/drizzle/schema"
+import { getOrganizationsIdTag } from "@/features/organizations/cache"
 
 const searchParamsSchema = z.object({
     title: z.string().optional().catch(undefined),
@@ -143,7 +144,7 @@ async function getJobListings(
             )
         )
     }
-    return await db.query.JobListingTable.findMany({
+    const data = await db.query.JobListingTable.findMany({
         where: or(
             jobListingId
                 ? and(
@@ -156,6 +157,7 @@ async function getJobListings(
         with: {
             organization: {
                 columns: {
+                    id: true,
                     name: true,
                     imageUrl: true,
                 },
@@ -166,6 +168,10 @@ async function getJobListings(
             desc(JobListingTable.postedAt),
         ],
     })
+    data.forEach((jobListing) => {
+        cacheTag(getOrganizationsIdTag(jobListing.organization.id))
+    })
+    return data
 }
 
 function JobListingItem({

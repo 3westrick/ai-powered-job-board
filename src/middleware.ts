@@ -6,6 +6,7 @@ const isPublicRoute = createRouteMatcher([
     "/",
     "/api/webhooks(.*)",
     "/api/inngest(.*)",
+    "/job-listings(.*)",
 ])
 
 // const aj = arcjet({
