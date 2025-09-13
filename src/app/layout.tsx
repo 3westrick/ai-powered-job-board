@@ -5,6 +5,7 @@ import "@mdxeditor/editor/style.css"
 import ClerkProvider from "@/services/clerk/components/clerk-provider"
 import { ThemeProvider } from "next-themes"
 import { Toaster } from "@/components/ui/sonner"
+import { UploadThingSSR } from "@/services/uploadThing/components/upload-thing-ssr"
 
 const outfitSans = Outfit({
     variable: "--font-outfit-sans",
@@ -33,6 +34,7 @@ export default function RootLayout({
                         enableColorScheme
                         disableTransitionOnChange
                     >
+                        <UploadThingSSR />
                         {children}
                         <Toaster />
                     </ThemeProvider>
