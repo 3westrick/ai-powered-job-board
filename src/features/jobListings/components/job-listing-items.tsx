@@ -20,6 +20,29 @@ import { differenceInDays } from "date-fns"
 import { connection } from "next/server"
 import { cacheTag } from "next/dist/server/use-cache/cache-tag"
 import { getJobListingsGlobalTag } from "../cache"
+import { z } from "zod"
+import {
+    experienceLevels,
+    jobListingTypes,
+    locationRequirements,
+} from "@/drizzle/schema"
+
+const searchParamsSchema = z.object({
+    title: z.string().optional().catch(undefined),
+    city: z.string().optional().catch(undefined),
+    state: z.string().optional().catch(undefined),
+    experience: z.enum(experienceLevels).optional().catch(undefined),
+    locationRequirement: z
+        .enum(locationRequirements)
+        .optional()
+        .catch(undefined),
+    type: z.enum(jobListingTypes).optional().catch(undefined),
+    jobIds: z
+        .union([z.string(), z.array(z.string())])
+        .transform((v) => (Array.isArray(v) ? v : [v]))
+        .optional()
+        .catch([]),
+})
 
 type Props = {
     searchParams: PromiseSearchParams
@@ -35,9 +58,10 @@ export default function JobListingItems(props: Props) {
 
 async function SuspendedComponent({ searchParams, params }: Props) {
     const jobListingId = params ? (await params).jobListingId : undefined
-    // TODO: zod validate
-    const search = await searchParams
-    const jobListings = await getJobListings(searchParams, jobListingId)
+    const { success, data } = searchParamsSchema.safeParse(await searchParams)
+    const search = success ? data : {}
+
+    const jobListings = await getJobListings(search, jobListingId)
     if (jobListings.length == 0) {
         return (
             <div className="text-muted-foreground p-4">
@@ -66,7 +90,7 @@ async function SuspendedComponent({ searchParams, params }: Props) {
 }
 
 async function getJobListings(
-    searchParams: any,
+    searchParams: z.infer<typeof searchParamsSchema>,
     jobListingId: string | undefined
 ) {
     "use cache"
