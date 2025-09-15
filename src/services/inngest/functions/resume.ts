@@ -31,9 +31,11 @@ export const createAiSummaryOfUploadedResume = inngest.createFunction(
                         role: "user",
                         parts: [
                             {
-                                fileData: {
+                                inlineData: {
+                                    data: await pdfUrlToBase64(
+                                        userResume.resumeFileUrl
+                                    ),
                                     mimeType: "application/pdf",
-                                    fileUri: userResume.resumeFileUrl,
                                 },
                             },
                             {
@@ -61,3 +63,17 @@ export const createAiSummaryOfUploadedResume = inngest.createFunction(
         })
     }
 )
+
+async function pdfUrlToBase64(url: string): Promise<string> {
+    // Fetch the PDF as a buffer
+    const response = await fetch(url)
+    if (!response.ok) {
+        throw new Error(`Failed to fetch PDF: ${response.statusText}`)
+    }
+
+    const arrayBuffer = await response.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+
+    // Convert buffer to Base64
+    return buffer.toString("base64")
+}
