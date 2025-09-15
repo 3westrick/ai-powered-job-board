@@ -35,10 +35,10 @@ export const createAiSummaryOfUploadedResume = inngest.createFunction(
                                     mimeType: "application/pdf",
                                     data: userResume.resumeFileUrl,
                                 },
-                                fileData: {
-                                    mimeType: "application/pdf",
-                                    fileUri: userResume.resumeFileUrl,
-                                },
+                                // fileData: {
+                                //     mimeType: "application/pdf",
+                                //     fileUri: userResume.resumeFileUrl,
+                                // },
                             },
                             {
                                 text: "Summarize the following resume and extract all key skills, experience, and qualifications. The summary should include all the information that a hiring manager would need to know about the candidate in order to determine if they are a good fit for a job. This summary should be formatted as markdown. Do not return any other text. If the file does not look like a resume return the text 'N/A'.",
@@ -48,6 +48,8 @@ export const createAiSummaryOfUploadedResume = inngest.createFunction(
                 ],
             },
         })
+
+        console.log("🚀 ~ summary:", summary)
 
         // Persist the summary
         await step.run("save-ai-summary", async () => {
