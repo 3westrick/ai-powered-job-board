@@ -3,22 +3,20 @@ import { updateJobListingApplication } from "@/features/jobListingApplications/d
 import { createAgent, createTool, gemini } from "@inngest/agent-kit"
 import z from "zod"
 
-const schema: any = z.object({
-    rating: z
-        .number()
-        .int()
-        .max(5)
-        .min(1)
-        .describe("The rating for the applicant"),
-    jobListingId: z.string().describe("The id of the job listing"),
-    userId: z.string().describe("The id of the user"),
-})
-
 const saveApplicantRatingTool = createTool({
     name: "save-applicant-ranking",
     description:
         "Saves the applicant's ranking for a specific job listing in the database",
-    parameters: schema,
+    parameters: z.object({
+        rating: z
+            .number()
+            .int()
+            .max(5)
+            .min(1)
+            .describe("The rating for the applicant"),
+        jobListingId: z.string().describe("The id of the job listing"),
+        userId: z.string().describe("The id of the user"),
+    }),
     handler: async ({ jobListingId, rating, userId }) => {
         await updateJobListingApplication({ jobListingId, userId }, { rating })
 
