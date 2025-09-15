@@ -31,10 +31,6 @@ export const createAiSummaryOfUploadedResume = inngest.createFunction(
                         role: "user",
                         parts: [
                             {
-                                inlineData: {
-                                    data: "",
-                                    mimeType: "",
-                                },
                                 fileData: {
                                     mimeType: "application/pdf",
                                     fileUri: userResume.resumeFileUrl,
