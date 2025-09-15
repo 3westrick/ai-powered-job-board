@@ -48,6 +48,7 @@ import { connection } from "next/server"
 import { differenceInDays } from "date-fns"
 import { getUserResumeIdTag } from "@/features/userResumes/cache"
 import NewJobListingApplicationForm from "@/features/jobListingApplications/components/NewJobListingApplicationForm"
+import { getUserResume } from "@/features/userResumes/db"
 
 export default function JobListingPage({
     params,
@@ -265,15 +266,6 @@ async function ApplyButton({ jobListingId }: { jobListingId: string }) {
             </DialogContent>
         </Dialog>
     )
-}
-
-async function getUserResume(userId: string) {
-    "use cache"
-    cacheTag(getUserResumeIdTag(userId))
-
-    return db.query.UserResumeTable.findFirst({
-        where: eq(UserResumeTable.userId, userId),
-    })
 }
 
 async function getJobListingApplication({

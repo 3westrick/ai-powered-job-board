@@ -18,6 +18,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
 import { DropzoneClient } from "./_DropzoneClient"
+import { getUserResume } from "@/features/userResumes/db"
 
 export default function UserSettingsResumePage() {
     return (
@@ -82,13 +83,4 @@ async function AISummaryCard() {
             </CardContent>
         </Card>
     )
-}
-
-async function getUserResume(userId: string) {
-    "use cache"
-    cacheTag(getUserResumeIdTag(userId))
-
-    return db.query.UserResumeTable.findFirst({
-        where: eq(UserResumeTable.userId, userId),
-    })
 }

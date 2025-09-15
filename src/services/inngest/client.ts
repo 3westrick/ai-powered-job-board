@@ -1,3 +1,4 @@
+import { proxyFetch } from "@/lib/proxyFetch"
 import {
     DeletedObjectJSON,
     OrganizationJSON,
