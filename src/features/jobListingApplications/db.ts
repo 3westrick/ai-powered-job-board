@@ -11,21 +11,25 @@ export async function insertJobListingApplication(
 
     revalidateJobListingApplicationCache(jobListingApplication)
 }
-
 export async function updateJobListingApplication(
-    { jobListingId, userId }: { jobListingId: string; userId: string },
-    { rating }: { rating: number }
+    {
+        jobListingId,
+        userId,
+    }: {
+        jobListingId: string
+        userId: string
+    },
+    data: Partial<typeof JobListingApplicationTable.$inferInsert>
 ) {
-    const [updatedJobListingApplication] = await db
+    await db
         .update(JobListingApplicationTable)
-        .set({ rating })
+        .set(data)
         .where(
             and(
                 eq(JobListingApplicationTable.jobListingId, jobListingId),
                 eq(JobListingApplicationTable.userId, userId)
             )
         )
-        .returning()
 
     revalidateJobListingApplicationCache({ jobListingId, userId })
 }

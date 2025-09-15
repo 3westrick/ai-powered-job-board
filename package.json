@@ -43,7 +43,7 @@
         "cmdk": "^1.1.1",
         "date-fns": "^4.1.0",
         "drizzle-orm": "^0.44.5",
-        "inngest": "^3.40.2",
+        "inngest": "^3.38.0",
         "lucide-react": "^0.542.0",
         "next": "15.5.1-canary.3",
         "next-mdx-remote": "^5.0.0",
@@ -59,7 +59,7 @@
         "tailwind-merge": "^3.3.1",
         "undici": "^7.16.0",
         "uploadthing": "^7.7.4",
-        "zod": "^4.1.5"
+        "zod": "^3.25.51"
     },
     "devDependencies": {
         "@eslint/eslintrc": "^3",
