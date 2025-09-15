@@ -160,7 +160,7 @@ function StatusUpdateButton({
                         <UpgradePopover
                             buttonText={statusToggleButtonText(status)}
                             popoverText={
-                                "You must upgrade your plan to publish morejob listings."
+                                "You must upgrade your plan to publish more job listings."
                             }
                         />
                     }

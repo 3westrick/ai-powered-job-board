@@ -1,8 +1,7 @@
 import { getUserResumeUrl, updateUserResume } from "@/features/userResumes/db"
 import { inngest } from "../client"
 import { env } from "@/data/env/server"
-import { generateText } from "ai"
-import { google } from "@/services/ai-sdk/models/google"
+import { pdfUrlToBase64 } from "@/lib/utils"
 
 export const createAiSummaryOfUploadedResume = inngest.createFunction(
     {
@@ -47,8 +46,6 @@ export const createAiSummaryOfUploadedResume = inngest.createFunction(
             },
         })
 
-        console.log("🚀 ~ summary:", summary)
-
         // Persist the summary
         await step.run("save-ai-summary", async () => {
             const parts = summary?.candidates?.[0]?.content?.parts ?? []
@@ -63,17 +60,3 @@ export const createAiSummaryOfUploadedResume = inngest.createFunction(
         })
     }
 )
-
-async function pdfUrlToBase64(url: string): Promise<string> {
-    // Fetch the PDF as a buffer
-    const response = await fetch(url)
-    if (!response.ok) {
-        throw new Error(`Failed to fetch PDF: ${response.statusText}`)
-    }
-
-    const arrayBuffer = await response.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-
-    // Convert buffer to Base64
-    return buffer.toString("base64")
-}

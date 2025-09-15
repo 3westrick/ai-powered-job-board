@@ -14,16 +14,10 @@ import { JobListingStatus } from "@/drizzle/schema"
 import { getJobListing, getJobListings } from "@/features/jobListings/actions"
 import { sortJobListingsByStatus } from "@/features/jobListings/lib/utils"
 import { SidebarOrganizationButton } from "@/features/organizations/components/sidebar-organization-button"
-import { SidebarUserButton } from "@/features/users/components/sidebar-user-button"
+import {} from "@/features/users/components/sidebar-user-button"
 import getCurrentOrg from "@/services/clerk/lib/getCurrentOrg"
 import hasOrgPermission from "@/services/clerk/lib/hasOrgPermission"
-import {
-    BrainCircuitIcon,
-    ClipboardListIcon,
-    LayoutDashboardIcon,
-    LogInIcon,
-    PlusIcon,
-} from "lucide-react"
+import { ClipboardListIcon, PlusIcon } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { Suspense } from "react"
@@ -68,7 +62,7 @@ async function EmployerLayoutSuspense({
                                 </Link>
                             </SidebarGroupAction>
                         </AsyncIf>
-                        <SidebarGroupContent className="group-data[state=collapsed]:hidden">
+                        <SidebarGroupContent className=" group-data-[state=collapsed]:hidden">
                             <Suspense>
                                 <JobListingMenu orgId={orgId} />
                             </Suspense>

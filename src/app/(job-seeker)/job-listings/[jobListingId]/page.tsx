@@ -80,7 +80,10 @@ export default function JobListingPage({
                     breakpoint="min-width: 1024px"
                     otherwise={
                         <ClientSheet>
-                            <SheetContent hideCloseButton className="p-4">
+                            <SheetContent
+                                hideCloseButton
+                                className="p-4 pt-0 overflow-y-auto"
+                            >
                                 <SheetHeader className="sr-only">
                                     <SheetTitle>Job Listing Details</SheetTitle>
                                 </SheetHeader>
@@ -101,7 +104,7 @@ export default function JobListingPage({
                         defaultSize={40}
                         minSize={30}
                     >
-                        <div className="p-4 h-screen overflow-y-auto">
+                        <div className="px-4 h-screen overflow-y-auto">
                             <Suspense fallback={<LoadingSpinner />}>
                                 <JobListingDetails
                                     params={params}
@@ -134,8 +137,8 @@ async function JobListingDetails({
         .join("")
 
     return (
-        <div className="space-y-6 @container">
-            <div className="space-y-4">
+        <div className="space-y-6 @container lg:pb-4">
+            <div className="space-y-4 sticky top-0 bg-background py-4 m-0">
                 <div className="flex gap-4 items-start">
                     <Avatar className="size-14 @max-md:hidden">
                         <AvatarImage
