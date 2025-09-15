@@ -1,7 +1,7 @@
 import JobListingItems from "@/features/jobListings/components/job-listing-items"
 import { PromiseSearchParams } from "@/lib/types"
 
-export default function HomePage({
+export default async function HomePage({
     searchParams,
 }: {
     searchParams: PromiseSearchParams

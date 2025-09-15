@@ -49,7 +49,7 @@ type Props = {
     searchParams: PromiseSearchParams
     params?: Promise<{ jobListingId: string }>
 }
-export default function JobListingItems(props: Props) {
+export default async function JobListingItems(props: Props) {
     return (
         <Suspense>
             <SuspendedComponent {...props} />
