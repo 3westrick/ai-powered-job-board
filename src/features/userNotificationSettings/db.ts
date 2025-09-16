@@ -12,3 +12,20 @@ export async function createOrganizationUserSettings(
         .onConflictDoNothing()
     revalidateUserNotificationSettingsCache(settings.userId)
 }
+
+export async function updateUserNotificationSettings(
+    userId: string,
+    settings: Partial<
+        Omit<typeof UserNotificationSettingsTable.$inferInsert, "userId">
+    >
+) {
+    await db
+        .insert(UserNotificationSettingsTable)
+        .values({ ...settings, userId })
+        .onConflictDoUpdate({
+            target: UserNotificationSettingsTable.userId,
+            set: settings,
+        })
+
+    revalidateUserNotificationSettingsCache(userId)
+}
